@@ -62,7 +62,7 @@
 <?php
 	function validateUsername($username){
 		if(preg_match("/[^a-zA-Z]+/", $username)){
-			echo "Username must contain only alphanumeric characters.<br>";
+			echo "Username must contain only letters.<br>";
 			return 1;
 		}
 		$dbConn = dbConnect();
@@ -125,6 +125,14 @@
 ?>
 
 <?php
+	function logMessage($msg){
+		$logFile = "/var/log/blogapp/userActions.log";
+		$msg = date('Y-m-d H:i:s') . " - " . $msg . "\n";
+		file_put_contents($logFile, $msg, FILE_APPEND | LOCK_EX);
+	}
+?>
+
+<?php
 	if($_REQUEST[done]){
 		$username = $_REQUEST[username];
 		$email = $_REQUEST[email];
@@ -138,10 +146,11 @@
 				$query = "INSERT INTO blog_users (username, email, password) VALUES ('$username','$email','$password')";
 				$query = pg_query($query);
 				if(!$query)
-					echo "There was an error processing the request. Please contact the administrator. <br>";		
+					echo "There was an error processing the request. Please contact the administrator. <br>";
 				else{
 					pg_close($dbConn);
-					echo "User created.";
+					logMessage("New user $username activation request, with email $email");
+					echo "Account activation request made. Awaiting admin approval.<br>";
 				}
 			}
 		}
