@@ -1,30 +1,5 @@
 <?php
-	function stripInput($str){
-	        $sqlKeyword = array("INSERT", "UPDATE", "DELETE", "SELECT", "GROUP BY", "ALTER", "JOIN", "UNION", "DROP");
-                foreach($sqlKeyword as $i)
-                        $str = preg_replace("/$i/i", "", $str);
-                $str = strip_tags($str);
-                $str = preg_replace("/#+/", "", $str);
-                $str = preg_replace("/--+/", "", $str);
-                $str = trim($str);
-                return $str;
-        }
-?>
-
-<?php
-        function dbConnect(){
-                $dbConf = file("/etc/db.conf");
-                $dbUser = $dbConf[0];
-                $dbName = $dbConf[1];
-                $dbHost = $dbConf[2];
-                $dbPass = $dbConf[3];
-                $dbConn = pg_connect("host=$dbHost dbname=$dbName user=$dbUser password=$dbPass");
-                if(!$dbConn){
-                        echo "There was an error processing the request. Please contact the administrator. <br>";
-                        return false;
-                }
-                return $dbConn;
-        }
+        include("functions.php");
 ?>
 
 <?php
@@ -66,7 +41,7 @@
 	<h1> Login </h1>
 	<hr>
 	<body>
-		<form action="<?php users/$_PHP_SELF ?>" method="POST">	
+		<form action="<?php blogs/$_PHP_SELF ?>" method="POST">	
 			<div class="container">
 			Username: <input type="text" name="username" /><br>
 			Password: <input type="password" name="password" /><br>
@@ -75,8 +50,8 @@
 			</div>		
 			<input type="submit" value="Login" />
 		</form>
-		<br>
 		<hr>
+		<a href="adminLogin.php">Admin login</a><br>
 	</body>
 </html>
 
