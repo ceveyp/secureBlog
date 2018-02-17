@@ -95,19 +95,15 @@
                 $validPassword = 1;
                 if(strlen($password) < 8){
                         $validPassword = 0;
-                        echo "Too short";
                 }
                 if(!preg_match('/[a-z]+/', $password)){
                         $validPassword = 0;
-                        echo "No lowercase";
                 }
                 if(!preg_match('/[A-Z]+/', $password)){
                         $validPassword = 0;
-                        echo "No uppercase";
                 }
                 if(!preg_match('/[0-9]+/', $password)){
                         $validPassword = 0;
-                        echo "No numbers";
                 }
                 if(!$validPassword){
                         echo "Password must be 8 and 26 characters. <br>";
@@ -120,4 +116,70 @@
         }
 ?>
 
+<?php
+	function getKey($password){
+		$hash = hash_pbkdf2("sha256", $password, md5(rand()), 5, 20);
+		return $hash;
+	}
+?>
 
+<?php
+	function createPassword($username, $password){
+		$salt = md5(rand());
+		$key = hash_pbkdf2("sha256", $password, $salt, 5, 20);
+		$dbConn = dbConnect();
+		if($dbConn){
+			$update = "UPDATE blog_users SET password='$key', salt='$salt' WHERE username = '$username'";
+			$result = pg_query($update);
+			if(!$result)
+				return 1;
+		}
+		else
+			return 1;
+		return 0;
+	}
+?>
+
+<?php
+	function checkPassword($username, $password){
+		$dbConn = dbConnect();
+		if($dbConn){
+			$query = "SELECT password, salt FROM blog_users WHERE username='$username'";
+			$result = pg_query($query);
+			if($result){
+				if(pg_num_rows($result) == 0)
+					return 1;
+				else{
+					$row = pg_fetch_row($result);
+					$key = $row[0];
+					$salt = $row[1];
+					$hash = hash_pbkdf2("sha256", $password, $salt, 5, 20);
+					if($key != $hash)
+						return 1;
+				}
+			}
+			else
+				return 2;
+		}
+		else
+			return 2;
+		return 0;
+	}
+?>
+
+<?php 
+	function checkActivationStatus($username){
+		$dbConn = dbConnect();
+		if($dbConn){
+			$query = "SELECT * FROM blog_users WHERE username='$username' AND activated=true";
+			$result = pg_query($query);
+			if(!$result)
+				return 2;
+			if(pg_num_rows($result) == 0)
+				return 1;
+		}
+		else
+			return 2;
+		return 0;
+	}
+?>
