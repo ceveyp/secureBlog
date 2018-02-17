@@ -5,20 +5,31 @@
 <?php
 	if($_REQUEST[done]){
 		$username = $_REQUEST[username];
-		$email = $_REQUEST[email];
 		$password = $_REQUEST[password];
 		$username = stripInput($username);
-		$email = stripInput($email);
 		$password = stripInput($password);
-		$dbConn = dbConnect();
-		if($dbConn){
-			$query = "INSERT INTO blog_users (username, email, password) VALUES ('$username','$email','$password')";
-			$query = pg_query($query);
-			if(!$query)
-				echo "There was an error processing the request. Please contact the administrator. <br>";		
-			else{
-				pg_close($dbConn);
+		$ret = checkPassword($username, $password);
+		$ip = $_SERVER['REMOTE_ADDR'];
+		if($ret == 2){
+			echo "There was an internal error. Please contact the administrator.<br>";
+			exit();
+		}
+		elseif($ret == 1){
+			logMessage("Failed user login attempt, with username $username - IP: $ip");
+			echo "Username or password is incorrect.<br>";
+		}
+		else{
+			$ret = checkActivationStatus($username);
+			if($ret == 2){
+				echo "There was an internal error. Please contact the administrator.<br>";
+				exit();
 			}
+			elseif($ret == 1){
+				logMessage("Unactivated user is attempting to login, with username $username - IP: $ip");
+				echo "User account has not yet been activated.<br>";
+			}
+			else
+				echo "Login successful.<br>";
 		}
 	}
 ?>
@@ -47,7 +58,7 @@
 			Password: <input type="password" name="password" /><br>
 			<input type="hidden" name="done" value="1" />
 			<br>
-			</div>		
+			</div>
 			<input type="submit" value="Login" />
 		</form>
 		<hr>

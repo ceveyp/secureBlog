@@ -20,7 +20,7 @@
                         	        logMessage("Account activation link for user $username: $activationLink");
 			}
 			echo "Account activation links sent.<br>";
-		}   
+		}
               	pg_close($dbConn);
 	}
 ?>
@@ -30,9 +30,9 @@
         $password = $_REQUEST[password];
         $username = stripInput($username);
         $password = stripInput($password);
-        $dbConn = dbConnect();
+	$dbConn = dbConnect();
         if($dbConn){
-        	$query = "SELECT * FROM admins WHERE username='$username' AND password='$password'";
+        	$query = "SELECT password, salt FROM admins WHERE username='$username'";
                 $result = pg_query($query);
                 if(!$result){
 	                echo "There was an error processing the request. Please contact the administrator.<br>";
@@ -45,6 +45,15 @@
                                 echo "Failed login attempt. IP address $ip has been logged.<br>";
                                 exit();
                         }
+			$row = pg_fetch_row($result);
+			$key = $row[0];
+			$salt = $row[1];
+			$hash = hash_pbkdf2("sha256", $password, $salt, 5, 20);
+			if($hash != $key){
+                        	logMessage("Failed admin login attempt, with username $username - IP: $ip");
+                                echo "Failed login attempt. IP address $ip has been logged.<br>";
+                                exit();
+			}
                        	logMessage("Successful admin login, with username $username");
 			$query = "SELECT id, username, email FROM blog_users WHERE activated = false";
 			$result = pg_query($query);

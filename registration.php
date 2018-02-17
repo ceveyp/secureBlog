@@ -25,11 +25,9 @@
 			$password = stripInput($password);
 		        $dbConn = dbConnect();
 			if($dbConn){
-				$query = "INSERT INTO blog_users (username, email, password, activated) VALUES ('$username','$email','$password',FALSE)";
+				$query = "INSERT INTO blog_users (username, email, activated) VALUES ('$username','$email',FALSE)";
 				$query = pg_query($query);
-				$code = md5(rand());
-				$activationLink = "https://dev.ceveyp.com/blogs/activation.php?username=$username&code=$code";
-				if(!$query){
+				if(!$query || createPassword($username, $password)){
 					echo "There was an error processing the request. Please contact the administrator. <br>";
 					exit();
 				}
