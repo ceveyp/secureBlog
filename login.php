@@ -1,5 +1,13 @@
 <?php
         include("functions.php");
+	session_start();
+?>
+
+<?php
+	if($_SESSION['loginFormMessage']){
+		echo $_SESSION['loginFormMessage'];
+		session_destroy();
+	}
 ?>
 
 <?php
@@ -61,6 +69,7 @@
 			</div>
 			<input type="submit" value="Login" />
 		</form>
+		<a href="passwordReset.php">Forgot password?</a>
 		<hr>
 		<a href="adminLogin.php">Admin login</a><br>
 	</body>

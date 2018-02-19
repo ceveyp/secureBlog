@@ -183,3 +183,100 @@
 		return 0;
 	}
 ?>
+
+<?php
+	function checkForEmail($email){
+		$dbConn = dbConnect();
+		if($dbConn){
+			$query = "SELECT * FROM blog_users WHERE email='$email'";
+			$result = pg_query($query);
+			if(!$result)
+				return 2;
+			if(pg_num_rows($result) == 0)
+				return 1;
+		}
+		else
+			return 2;
+		return 0;
+		
+	}
+?>
+
+<?php
+	function createNonce(){
+		return md5(rand());
+	}
+?>
+
+<?php
+	function createReset($email, $code){
+		$dbConn = dbConnect();
+		if($dbConn){
+			$query = "SELECT username FROM blog_users WHERE email='$email'";
+			$result = pg_query($query);
+			if(!$result)
+				return 1;
+			$row = pg_fetch_row($result);
+			$username = $row[0];
+			$insert = "INSERT INTO resets (username, code) VALUES ('$username', '$code')";
+			$result = pg_query($insert);
+			if(!$result)
+				return 1;
+		}
+		else
+			return 1;
+		return 0;
+	}
+?>
+
+<?php
+	function getUsername($email){
+		$dbConn = dbConnect();
+		if($dbConn){
+			$query = "SELECT username FROM blog_users WHERE email='$email'";
+			$result = pg_query($query);
+			if(!$result)
+				return false;
+			$row = pg_fetch_row($result);
+			$username = $row[0];
+			return $username;
+		}
+		else
+			return false;
+	}
+?>
+
+<?php
+	function validateNonce($code){
+		if(strlen($code) != 32)
+                        return 1;
+                if(preg_match("/[^a-fA-F0-9]/", $code))
+                        return 1;
+		return 0;
+	}
+?>
+
+<?php
+	function checkPasswordResetExists($username, $code){
+		$dbConn = dbConnect();
+		if($dbConn){
+			$query = "SELECT * FROM resets WHERE username='$username' AND code='$code'";
+			$result = pg_query($query);
+			if(!$result)
+				return 2;
+			if(pg_num_rows($result) == 0)
+				return 1;
+			$update = "DELETE FROM resets WHERE username='$username' AND code='$code'";
+			$result = pg_query($update);
+			if(!$result)
+				return 2;
+			return 0;
+		}
+		else
+			return 2;
+	}
+?>
+
+
+
+
