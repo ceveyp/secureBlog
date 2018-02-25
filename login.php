@@ -23,6 +23,16 @@
 			exit();
 		}
 		elseif($ret == 1){
+			incInvalidLogin("$username");
+			$ret2 = checkAccountLockStatus("$username");
+			if($ret2 == 2){
+				echo "There was an internal error. Please contact the administrator.<br>";
+				exit();
+			}
+			if($ret2 == 1){
+				echo "This account has been locked.<br>";
+				logMessage("User $username attempting to login with locked account - IP: $ip");
+			}
 			logMessage("Failed user login attempt, with username $username - IP: $ip");
 			echo "Username or password is incorrect.<br>";
 		}
@@ -36,8 +46,23 @@
 				logMessage("Unactivated user is attempting to login, with username $username - IP: $ip");
 				echo "User account has not yet been activated.<br>";
 			}
-			else
-				echo "Login successful.<br>";
+			else{
+				$ret = checkAccountLockStatus("$username");
+				if($ret == 2){
+					echo "There was an internal error. Please contact the administrator.<br>";
+					exit();
+				}
+				if($ret == 1){
+					echo "Account has been locked.<br>";
+					logMessage("User $username attempting to login with locked account - IP: $ip");
+				}
+				else{
+					$_SESSION[username] = $username;
+					$_SESSION[AUTH] = true;
+					header('Location: ' . "profile.php");
+					exit();
+				}
+			}
 		}
 	}
 ?>
